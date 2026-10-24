@@ -1,0 +1,23 @@
+name: Unpack ZIP
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack
+        run: |
+          set -e
+          test -f Kaminga-Phase1.zip
+          unzip -o Kaminga-Phase1.zip -x ".github/*"
+          rm Kaminga-Phase1.zip
+      - name: Commit
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Add Kaminga phase 1"
+          git push
