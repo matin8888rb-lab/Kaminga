@@ -1,10 +1,20 @@
 package com.kaminga.reader.domain.model
 
+/**
+ * یک فصل. فصل نمایشی صفحه‌ی ساخته‌شده داخل برنامه دارد (pagePaths خالی)،
+ * فصل شخصی صفحه‌هایش فایل‌های کپی‌شده‌ی کاربر در حافظه‌ی برنامه است.
+ */
 data class Chapter(
     val id: String,
     val number: Int,
-    val title: String
-)
+    val title: String,
+    val pageCount: Int = 0,
+    val pagePaths: List<String> = emptyList(),
+    val isPersonal: Boolean = false
+) {
+    val isReadable: Boolean
+        get() = pageCount > 0
+}
 
 /**
  * یک اثر. `addedOrder` هرچه بزرگ‌تر باشد اثر جدیدتر است.

@@ -48,6 +48,7 @@ import com.kaminga.reader.core.designsystem.LoadingView
 import com.kaminga.reader.core.designsystem.SectionTitle
 import com.kaminga.reader.di.AppContainer
 import com.kaminga.reader.domain.model.Comic
+import com.kaminga.reader.domain.usecase.describe
 import com.kaminga.reader.ui.theme.Cyan
 import com.kaminga.reader.ui.theme.Muted
 import com.kaminga.reader.ui.theme.Night
@@ -57,9 +58,12 @@ import com.kaminga.reader.ui.theme.Purple
 @Composable
 fun HomeScreen(
     onComicClick: (String) -> Unit,
+    onContinueClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
     viewModel: HomeViewModel = viewModel(
-        factory = simpleFactory { HomeViewModel(AppContainer.comicRepository) }
+        factory = simpleFactory {
+            HomeViewModel(AppContainer.comicRepository, AppContainer.userLibrary)
+        }
     )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -72,7 +76,7 @@ fun HomeScreen(
                 message = current.message,
                 onRetry = if (current.retryable) viewModel::load else null
             )
-            is UiState.Success -> HomeSections(current.data, onComicClick, onSearchClick)
+            is UiState.Success -> HomeSections(current.data, onComicClick, onContinueClick, onSearchClick)
         }
     }
 }
@@ -81,6 +85,7 @@ fun HomeScreen(
 private fun HomeSections(
     content: HomeContent,
     onComicClick: (String) -> Unit,
+    onContinueClick: (String, String) -> Unit,
     onSearchClick: () -> Unit
 ) {
     if (content.isEmpty) {
@@ -95,6 +100,17 @@ private fun HomeSections(
                 Column {
                     Spacer(Modifier.height(14.dp))
                     HeroBanner(onSearchClick)
+                }
+            }
+            if (content.continueReading.isNotEmpty()) {
+                item { SectionTitle("ادامه‌ی مطالعه") }
+                items(content.continueReading.take(3), key = { entry -> "continue-${entry.comic.id}" }) { entry ->
+                    ComicRow(
+                        comic = entry.comic,
+                        onClick = { onContinueClick(entry.comic.id, entry.progress.chapterId) },
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
+                        subtitle = entry.progress.describe()
+                    )
                 }
             }
             if (content.featured.isNotEmpty()) {

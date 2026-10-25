@@ -20,6 +20,9 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,6 +47,7 @@ import com.kaminga.reader.ui.theme.Muted
 import com.kaminga.reader.ui.theme.Night
 import com.kaminga.reader.ui.theme.Panel
 import com.kaminga.reader.ui.theme.PanelHigh
+import com.kaminga.reader.ui.theme.Purple
 
 @Composable
 fun SectionTitle(
@@ -160,7 +164,12 @@ fun ComicCard(comic: Comic, onClick: () -> Unit, modifier: Modifier = Modifier) 
 }
 
 @Composable
-fun ComicRow(comic: Comic, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun ComicRow(
+    comic: Comic,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null
+) {
     Row(
         modifier
             .fillMaxWidth()
@@ -188,7 +197,7 @@ fun ComicRow(comic: Comic, onClick: () -> Unit, modifier: Modifier = Modifier) {
             )
             val demoSuffix = if (comic.isDemo) " • نمایشی" else ""
             Text(
-                "${comic.type.label} • ${comic.status.label}$demoSuffix",
+                subtitle ?: "${comic.type.label} • ${comic.status.label}$demoSuffix",
                 color = Cyan,
                 fontSize = 11.sp
             )
@@ -274,5 +283,27 @@ fun EmptyView(
         modifier = modifier,
         actionLabel = actionLabel,
         onAction = onAction
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun KamingaChip(
+    text: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text) },
+        modifier = modifier,
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = Panel,
+            labelColor = Muted,
+            selectedContainerColor = Purple.copy(alpha = 0.35f),
+            selectedLabelColor = Color.White
+        )
     )
 }

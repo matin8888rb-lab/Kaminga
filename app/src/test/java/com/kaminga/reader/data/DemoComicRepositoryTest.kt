@@ -33,6 +33,12 @@ class DemoComicRepositoryTest {
     }
 
     @Test
+    fun everyDemoChapterIsReadable() = runTest {
+        val comics = repository.getComics().getOrThrow()
+        assertTrue(comics.all { comic -> comic.chapters.all { it.isReadable } })
+    }
+
+    @Test
     fun atLeastOneComicHasNoChaptersToExerciseEmptyState() = runTest {
         val comics = repository.getComics().getOrThrow()
         assertTrue(comics.any { it.chapters.isEmpty() && it.status == PublicationStatus.UPCOMING })

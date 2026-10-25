@@ -14,7 +14,14 @@ import com.kaminga.reader.domain.model.PublicationStatus
 internal object DemoData {
 
     private fun chapters(comicId: String, count: Int): List<Chapter> =
-        (1..count).map { number -> Chapter("$comicId-ch$number", number, "قسمت نمونه‌ی $number") }
+        (1..count).map { number ->
+            Chapter(
+                id = "$comicId-ch$number",
+                number = number,
+                title = "قسمت نمونه‌ی $number",
+                pageCount = 6 + (number % 4) * 2
+            )
+        }
 
     val comics: List<Comic> = listOf(
         Comic(

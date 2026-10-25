@@ -14,7 +14,12 @@ object Routes {
     const val COMIC_ID_ARG = "comicId"
     const val DETAILS = "details/{$COMIC_ID_ARG}"
 
+    const val CHAPTER_ID_ARG = "chapterId"
+    const val READER = "reader/{$COMIC_ID_ARG}/{$CHAPTER_ID_ARG}"
+
     fun details(comicId: String): String = "details/$comicId"
+
+    fun reader(comicId: String, chapterId: String): String = "reader/$comicId/$chapterId"
 }
 
 enum class TopLevelDestination(val route: String, val label: String, val icon: ImageVector) {

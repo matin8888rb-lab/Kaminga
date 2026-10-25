@@ -16,9 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -43,6 +40,7 @@ import com.kaminga.reader.core.common.simpleFactory
 import com.kaminga.reader.core.designsystem.ComicRow
 import com.kaminga.reader.core.designsystem.EmptyView
 import com.kaminga.reader.core.designsystem.ErrorView
+import com.kaminga.reader.core.designsystem.KamingaChip
 import com.kaminga.reader.core.designsystem.LoadingView
 import com.kaminga.reader.di.AppContainer
 import com.kaminga.reader.domain.model.ComicLanguage
@@ -224,22 +222,6 @@ fun SearchScreen(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun KamingaChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(text) },
-        colors = FilterChipDefaults.filterChipColors(
-            containerColor = Panel,
-            labelColor = Muted,
-            selectedContainerColor = Purple.copy(alpha = 0.35f),
-            selectedLabelColor = Color.White
-        )
-    )
 }
 
 @Composable
