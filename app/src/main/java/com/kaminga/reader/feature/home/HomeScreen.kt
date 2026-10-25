@@ -54,25 +54,52 @@ import com.kaminga.reader.ui.theme.Night
 import com.kaminga.reader.ui.theme.Panel
 import com.kaminga.reader.ui.theme.Purple
 
+private val SpaceDeep = Color(0xFF050817)
+private val SpaceBlue = Color(0xFF101D3B)
+private val SpaceViolet = Color(0xFF38216B)
+private val SpaceBorder = Color(0xFF29375C)
+private val StarWhite = Color(0xFFEAF1FF)
+
 @Composable
 fun HomeScreen(
     onComicClick: (String) -> Unit,
     onSearchClick: () -> Unit,
     viewModel: HomeViewModel = viewModel(
-        factory = simpleFactory { HomeViewModel(AppContainer.comicRepository) }
+        factory = simpleFactory {
+            HomeViewModel(AppContainer.comicRepository)
+        }
     )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    Column(Modifier.fillMaxSize()) {
-        BrandHeader()
-        when (val current = state) {
-            is UiState.Loading -> LoadingView()
-            is UiState.Error -> ErrorView(
-                message = current.message,
-                onRetry = if (current.retryable) viewModel::load else null
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(SpaceDeep, Night, Color(0xFF0B1025))
+                )
             )
-            is UiState.Success -> HomeSections(current.data, onComicClick, onSearchClick)
+    ) {
+        Column(Modifier.fillMaxSize()) {
+            BrandHeader()
+
+            when (val current = state) {
+                is UiState.Loading -> LoadingView()
+
+                is UiState.Error -> ErrorView(
+                    message = current.message,
+                    onRetry = if (current.retryable) {
+                        viewModel::load
+                    } else null
+                )
+
+                is UiState.Success -> HomeSections(
+                    content = current.data,
+                    onComicClick = onComicClick,
+                    onSearchClick = onSearchClick
+                )
+            }
         }
     }
 }
@@ -89,49 +116,113 @@ private fun HomeSections(
             body = "وقتی آثار منتشر شوند، این‌جا نمایش داده می‌شوند."
         )
     } else {
-        LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
-            item { SearchEntry(onSearchClick) }
+        LazyColumn(
+            contentPadding = PaddingValues(bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
             item {
-                Column {
-                    Spacer(Modifier.height(14.dp))
-                    HeroBanner(onSearchClick)
+                SearchEntry(onSearchClick)
+            }
+
+            item {
+                Spacer(Modifier.height(14.dp))
+                HeroBanner(onSearchClick)
+                Spacer(Modifier.height(10.dp))
+            }
+
+            if (content.featured.isNotEmpty()) {
+                item {
+                    SectionTitle(
+                        "آثار منتخب",
+                        subtitle = "جهان‌هایی برای کشف کردن"
+                    )
+                }
+
+                item {
+                    ComicCarousel(content.featured, onComicClick)
                 }
             }
-            if (content.featured.isNotEmpty()) {
-                item { SectionTitle("آثار منتخب", subtitle = "نمونه‌های آزمایشی رابط کاربری") }
-                item { ComicCarousel(content.featured, onComicClick) }
+
+            item {
+                Spacer(Modifier.height(8.dp))
+                SectionTitle(
+                    "تازه‌ترین آثار",
+                    subtitle = "تازه به جهان کمینگا رسیده‌اند"
+                )
             }
-            item { SectionTitle("تازه‌ترین آثار") }
-            items(content.newest, key = { comic -> "new-${comic.id}" }) { comic ->
+
+            items(
+                content.newest,
+                key = { comic -> "new-${comic.id}" }
+            ) { comic ->
                 ComicRow(
                     comic = comic,
                     onClick = { onComicClick(comic.id) },
-                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp)
+                    modifier = Modifier.padding(
+                        horizontal = 18.dp,
+                        vertical = 6.dp
+                    )
                 )
             }
-            item { SectionTitle("محبوب‌ترین‌ها") }
-            item { ComicCarousel(content.popular, onComicClick) }
+
             item {
-                Text(
-                    "همه‌ی آثار این نسخه نمایشی و ساختگی هستند.",
-                    color = Muted,
-                    fontSize = 11.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
+                Spacer(Modifier.height(8.dp))
+                SectionTitle(
+                    "محبوب‌ترین‌ها",
+                    subtitle = "داستان‌هایی که ارزش کشف دارند"
                 )
+            }
+
+            item {
+                ComicCarousel(content.popular, onComicClick)
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 28.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "✦  K A M I N G A  ✦",
+                        color = Cyan,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        "این نسخه شامل آثار نمایشی و ساختگی است.",
+                        color = Muted,
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ComicCarousel(comics: List<Comic>, onComicClick: (String) -> Unit) {
+private fun ComicCarousel(
+    comics: List<Comic>,
+    onComicClick: (String) -> Unit
+) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 18.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        items(comics, key = { comic -> comic.id }) { comic ->
-            ComicCard(comic = comic, onClick = { onComicClick(comic.id) })
+        items(
+            comics,
+            key = { comic -> comic.id }
+        ) { comic ->
+            ComicCard(
+                comic = comic,
+                onClick = { onComicClick(comic.id) }
+            )
         }
     }
 }
@@ -141,51 +232,123 @@ private fun BrandHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 14.dp),
+            .background(
+                Brush.horizontalGradient(
+                    listOf(
+                        Color(0xFF080D20),
+                        Color(0xFF11152D),
+                        Color(0xFF080D20)
+                    )
+                )
+            )
+            .padding(
+                start = 18.dp,
+                end = 18.dp,
+                top = 18.dp,
+                bottom = 15.dp
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(42.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(Brush.linearGradient(listOf(Purple, Cyan))),
+                .size(46.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(Cyan, Purple, Color(0xFF3867FF))
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Text("K", color = Night, fontWeight = FontWeight.Black, fontSize = 20.sp)
+            Text(
+                "K",
+                color = SpaceDeep,
+                fontWeight = FontWeight.Black,
+                fontSize = 25.sp
+            )
         }
+
         Spacer(Modifier.width(12.dp))
+
         Column(Modifier.weight(1f)) {
-            Text("KAMINGA", fontWeight = FontWeight.Black, letterSpacing = 2.sp, fontSize = 17.sp)
-            Text("دنیای کمیک، مانگا و مانهوا", color = Muted, fontSize = 12.sp)
+            Text(
+                "KAMINGA",
+                color = StarWhite,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 2.5.sp,
+                fontSize = 18.sp
+            )
+
+            Spacer(Modifier.height(3.dp))
+
+            Text(
+                "EXPLORE YOUR NEXT UNIVERSE",
+                color = Cyan,
+                fontSize = 8.sp,
+                letterSpacing = 1.sp
+            )
         }
-        Surface(color = Panel, shape = RoundedCornerShape(50)) {
+
+        Surface(
+            color = Color(0xFF171C38),
+            shape = RoundedCornerShape(50),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                SpaceBorder
+            )
+        ) {
             Text(
                 "DEMO",
                 color = Cyan,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp)
+                modifier = Modifier.padding(
+                    horizontal = 11.dp,
+                    vertical = 7.dp
+                )
             )
         }
     }
 }
 
-/** میان‌بر به تب کشف؛ خودش جست‌وجو نمی‌کند. */
+/** میان‌بر به بخش جست‌وجو؛ جست‌وجو در صفحه‌ی خودش انجام می‌شود. */
 @Composable
 private fun SearchEntry(onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Panel)
+            .padding(horizontal = 18.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(17.dp))
+            .background(
+                Brush.horizontalGradient(
+                    listOf(Color(0xFF121A34), Color(0xFF0C142A))
+                )
+            )
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 15.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Search, contentDescription = null, tint = Muted)
-        Spacer(Modifier.width(10.dp))
-        Text("جست‌وجوی عنوان، نویسنده یا ژانر…", color = Muted, fontSize = 14.sp)
+        Icon(
+            Icons.Default.Search,
+            contentDescription = "جست‌وجو",
+            tint = Cyan,
+            modifier = Modifier.size(21.dp)
+        )
+
+        Spacer(Modifier.width(11.dp))
+
+        Text(
+            "جست‌وجوی عنوان، نویسنده یا ژانر...",
+            color = Muted,
+            fontSize = 13.sp,
+            modifier = Modifier.weight(1f)
+        )
+
+        Text(
+            "⌕",
+            color = Purple,
+            fontSize = 20.sp
+        )
     }
 }
 
@@ -195,41 +358,100 @@ private fun HeroBanner(onExplore: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
-            .clip(RoundedCornerShape(26.dp))
+            .clip(RoundedCornerShape(27.dp))
             .background(
                 Brush.linearGradient(
-                    listOf(Color(0xFF34265F), Color(0xFF142D48), Color(0xFF111729))
+                    listOf(
+                        Color(0xFF342064),
+                        Color(0xFF17264D),
+                        Color(0xFF0A1830),
+                        Color(0xFF101329)
+                    )
                 )
             )
-            .padding(22.dp)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color.Transparent,
+                        Color(0x33030717)
+                    )
+                )
+            )
+            .padding(21.dp)
     ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Cyan)
+            )
+
+            Spacer(Modifier.width(7.dp))
+
+            Text(
+                "YOUR NEXT ADVENTURE",
+                color = Cyan,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.7.sp
+            )
+        }
+
+        Spacer(Modifier.height(17.dp))
+
         Text(
-            "THE NEXT UNIVERSE",
-            color = Cyan,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 2.sp
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            "داستان بعدی‌ات\nاز این‌جا شروع می‌شود",
-            fontSize = 27.sp,
-            lineHeight = 35.sp,
+            "به دنیایی\nبی‌پایان خوش آمدی!",
+            color = Color.White,
+            fontSize = 26.sp,
+            lineHeight = 37.sp,
             fontWeight = FontWeight.ExtraBold
         )
-        Spacer(Modifier.height(9.dp))
+
+        Spacer(Modifier.height(10.dp))
+
         Text(
-            "کمیک، مانگا و مانهوا؛ در یک کتابخانه‌ی واحد.",
-            color = Color(0xFFD3D9EA),
-            fontSize = 13.sp
+            "از کمیک و مانگا تا مانهوا؛\nماجراجویی بعدی تو همین‌جاست.",
+            color = Color(0xFFD0D9F3),
+            fontSize = 13.sp,
+            lineHeight = 22.sp
         )
-        Spacer(Modifier.height(18.dp))
+
+        Spacer(Modifier.height(19.dp))
+
         Button(
             onClick = onExplore,
-            colors = ButtonDefaults.buttonColors(containerColor = Cyan, contentColor = Night),
-            shape = RoundedCornerShape(13.dp)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Cyan,
+                contentColor = SpaceDeep
+            ),
+            shape = RoundedCornerShape(14.dp),
+            contentPadding = PaddingValues(
+                horizontal = 20.dp,
+                vertical = 11.dp
+            )
         ) {
-            Text("کشف آثار", fontWeight = FontWeight.Bold)
+            Text(
+                "شروع ماجراجویی  →",
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp
+            )
+        }
+
+        Spacer(Modifier.height(15.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                "✦  ✧  ·  ✦  ·  ✧",
+                color = Color(0xFFB9A5FF),
+                fontSize = 13.sp,
+                letterSpacing = 3.sp
+            )
         }
     }
 }
